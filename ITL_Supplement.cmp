@@ -1,0 +1,118 @@
+<aura:component implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,lightning:availableForFlowScreens,force:appHostable,force:lightningQuickAction" 
+                access="global" controller="ITL_SupplementController" >  
+    <aura:attribute name="quote" type="Quote" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <!-- Upload -->
+    <lightning:flow aura:id="flowData"/>
+
+    <aura:attribute name="files" type="ContentDocument[]"/>  
+    <aura:attribute name="recordId" type="string" access="public"/>
+    <!-- Multiple file upload to get Quote Approval record Id -->
+    <aura:attribute name="record" type="string" access="public"/>
+    <!-- <aura:attribute name="accept" type="List" default="['.jpg', '.jpeg','.pdf','.csv','.xlsx','.xls','.doc','.txt','.log','.png']"/>  
+    <aura:attribute name="multiple" type="Boolean" default="true"/>  -->     
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    
+    <!-- End of Upload -->
+    
+    <aura:attribute name="showHideComponent" type="Boolean" default="true"/>
+    <!-- 'showLoadingSpinner' attribute for show/hide the uploading image and msg in aura:if-->
+    <aura:attribute name="showLoadingSpinner" type="boolean" default="false" />
+    <aura:attribute name="recordTypeId" type="String" />
+    <aura:attribute name="quoteId" type="String" />
+    
+    <aura:attribute name="fileName" type="String" default="No File Selected.." />
+    <aura:attribute name="newQuoteApprovalError" type="String" />
+    <aura:attribute name="isDisabled" type="boolean" default="false" />
+    <aura:attribute name="isSaveSelected" type="boolean" default="false" />
+    <aura:attribute name="isSaveSubmitSelected" type="boolean" default="false" />
+    
+     <aura:attribute name="isDealDeskDiscountingRequested" type="boolean" default="false" />
+     <aura:attribute name="isPricingChangesMade" type="boolean" default="false" />
+    
+    <aura:attribute name="simpleNewQuoteApproval" type="Quote_Approval__c" default ="{'sobjectType': 'Quote_Approval__c',
+                                                                                     'Comment__c':'',
+                                                                                     'Discounting__c': false,
+                                                                                     'Only_Pricing_Changes_Made__c': false,
+                                                                                     'Discounting_Instruction__c':''
+                                                                                     }"/>
+    
+    <aura:attribute name="options" type="List" default="[
+                                                        {'label': 'Save', 'value': 'option1'},
+                                                        {'label': 'Save And Submit', 'value': 'option2'}]"/>
+    <aura:attribute name="radioValue" type="String" />
+    <aura:attribute name="showLoading" type="boolean" />
+    <aura:if isTrue="{! v.showLoading }">
+        <div class="slds-spinner_container">
+            <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    <div class="container" disabled = "{!v.isDisabled}" >
+        <aura:if isTrue="{!v.showHideComponent}">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem >
+                    <h1 class="header">Create Quote Approval</h1>        
+                    
+                    <br></br>
+                    <lightning:input aura:id="quoteApprovalComment" type="text" label="Comment" required="true" value="{!v.simpleNewQuoteApproval.Comment__c}"/>
+                    
+                    <aura:if isTrue="{!v.isDealDeskDiscountingRequested}">
+                        <br></br>
+                        <lightning:input aura:id="quoteApprovalDiscountRequested" type="checkbox" label="Deal Desk Discounting Requested?" value="{!v.simpleNewQuoteApproval.Discounting__c}"
+                                         checked = "{!v.simpleNewQuoteApproval.Discounting__c}" />
+                    </aura:if>
+                    
+                    <aura:if isTrue="{!v.isPricingChangesMade}">
+                        <br></br>
+                        <lightning:input aura:id="quoteApprovalPricingChanges" type="checkbox" label="Only Pricing Changes Made?" value="{!v.simpleNewQuoteApproval.Only_Pricing_Changes_Made__c}"
+                                         checked ="{!v.simpleNewQuoteApproval.Only_Pricing_Changes_Made__c}"/>
+                    </aura:if>
+                    
+                    <br></br>                    
+                    <lightning:textarea aura:id="quoteApprovalDiscountInst" label="Discounting Instruction" value="{!v.simpleNewQuoteApproval.Discounting_Instruction__c}" />
+                    <br></br> 
+                    
+                    <!-- Lightning Input with file type and on file change call the 'handleFilesChange' controller --> 
+                    <lightning:input aura:id="fileId" onchange="{!c.handleFilesChange}" type="file" name="file" label="Upload Attachment" multiple="true"/>
+                    <div class="slds-text-body_small slds-text-color_error">{!v.fileName} </div>
+                    <!--use aura:if for show-hide the loading spinner image--> 
+                    <aura:if isTrue="{!v.showLoadingSpinner}">
+                        <div class="slds-text-body_small slds-text-color_error">Uploading... 
+                            <img src="/auraFW/resources/aura/images/spinner.gif" class="spinner-img" alt="Loading"/>'
+                        </div>
+                    </aura:if>
+                    <br/>
+              
+                    <br/>
+          <lightning:radioGroup 
+                                          aura:id="radioGroup"
+                                          name="radioButtonGroup"
+                                          label=""
+                                          options="{! v.options }"
+                                          value="{! v.radioValue }"
+                                          type="radio"
+                                          onchange="{! c.handleRadioChange }"/>
+                    <br></br>
+                    <br></br>
+                    <div style="position:fixed; bottom:15px; right:10px;">
+                        <button class="slds-button slds-button_neutral" onclick="{!c.handlePrevious}"  disabled = "{!v.isDisabled}">Previous</button>
+                        <button class="slds-button slds-button_brand" onclick="{!c.handleNext}"  disabled = "{!v.isDisabled}">Next</button>
+                    </div>
+                    <br></br>
+                    
+                </lightning:layoutItem>
+                
+            </lightning:layout>
+            <aura:set attribute="else">
+                <h1 class="header">Record saved Successfully.</h1>
+                <div style="position:fixed; bottom:15px; right:10px;">
+                    <button class="slds-button slds-button_brand" onclick="{!c.handleFinish}">Finish</button>
+                </div>
+            </aura:set>
+        </aura:if>
+    </div>
+</aura:component>
